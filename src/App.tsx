@@ -1,19 +1,27 @@
-import { Button } from "@/components/ui/button"
+import { Map, MapControls, useMap } from "@/components/ui/map"
+
+function Loader() {
+  const { isLoaded } = useMap()
+
+  if (isLoaded) return null
+
+  return (
+    <div className="absolute inset-0 z-10 bg-black flex flex-col items-center justify-center gap-4">
+      <div className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+      <span className="text-blue-400 text-xs tracking-widest uppercase animate-pulse">
+        Initializing map...
+      </span>
+    </div>
+  )
+}
 
 export function App() {
   return (
-    <div className="flex min-h-svh p-6">
-      <div className="flex max-w-md min-w-0 flex-col gap-4 text-sm leading-loose">
-        <div>
-          <h1 className="font-medium">Project ready!</h1>
-          <p>You may now add components and start building.</p>
-          <p>We&apos;ve already added the button component for you.</p>
-          <Button className="mt-2">Button</Button>
-        </div>
-        <div className="font-mono text-xs text-muted-foreground">
-          (Press <kbd>d</kbd> to toggle dark mode)
-        </div>
-      </div>
+    <div className="w-screen h-screen relative">
+      <Map center={[-74.006, 40.7128]} zoom={11} theme="dark">
+        <MapControls showZoom showCompass />
+        <Loader />
+      </Map>
     </div>
   )
 }
