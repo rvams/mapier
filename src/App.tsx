@@ -19,7 +19,8 @@ function Loader() {
       style={{ fontFamily: "'Courier New', monospace" }}>
       <div className="relative">
         <div className="w-16 h-16 border border-cyan-500/30 rounded-full animate-spin" />
-        <div className="absolute inset-2 border border-cyan-400/60 rounded-full animate-spin" style={{ animationDirection: "reverse", animationDuration: "1.5s" }} />
+        <div className="absolute inset-2 border border-cyan-400/60 rounded-full animate-spin"
+          style={{ animationDirection: "reverse", animationDuration: "1.5s" }} />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse" />
         </div>
@@ -55,22 +56,15 @@ function HUD() {
   if (!isLoaded) return null
 
   return <>
-    {/* Vignette */}
     <div className="absolute inset-0 pointer-events-none z-10"
       style={{ background: "radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.7) 100%)" }} />
-
-    {/* Scanlines */}
     <div className="absolute inset-0 pointer-events-none z-10 opacity-[0.03]"
       style={{ backgroundImage: "repeating-linear-gradient(0deg, #fff 0px, #fff 1px, transparent 1px, transparent 4px)" }} />
-
-    {/* Corner brackets */}
     {[["top-3 left-3", "border-t border-l"], ["top-3 right-3", "border-t border-r"],
       ["bottom-3 left-3", "border-b border-l"], ["bottom-3 right-3", "border-b border-r"]
     ].map(([pos, border], i) => (
       <div key={i} className={`absolute ${pos} w-6 h-6 ${border} border-cyan-500/50 pointer-events-none z-20`} />
     ))}
-
-    {/* Coords bar */}
     <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 pointer-events-none"
       style={{ fontFamily: "'Courier New', monospace" }}>
       <div className="bg-black/60 border border-cyan-900/60 backdrop-blur-sm px-4 py-1.5 rounded text-[10px] text-cyan-600 tracking-widest flex gap-4">
@@ -85,6 +79,14 @@ function HUD() {
 }
 
 export function App() {
+  // ✅ Service worker registered here, not inside Loader
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return
+    navigator.serviceWorker.register("/tile-worker.js")
+      .then((reg) => console.log("[tile-cache] Registered", reg.scope))
+      .catch(console.error)
+  }, [])
+
   return (
     <div className="w-screen h-screen relative bg-black">
       <Map
@@ -94,9 +96,7 @@ export function App() {
         fadeDuration={0}
         maxTileCacheSize={500}
         renderWorldCopies={false}
-        styles={{ dark: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json" }}
-
-
+        styles={{ dark:"https://tiles.stadiamaps.com/styles/alidade_smooth_dark.json" }}
       >
         <MapControls showZoom showCompass />
         <Loader />
