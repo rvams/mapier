@@ -94,9 +94,9 @@ export function App() {
         fadeDuration={0}
         maxTileCacheSize={500}
         renderWorldCopies={false}
-        styles={{
-          dark: "https://tiles.stadiamaps.com/styles/alidade_smooth_dark.json"
-        }}
+        styles={{ dark: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json" }}
+
+
       >
         <MapControls showZoom showCompass />
         <Loader />
