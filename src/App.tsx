@@ -1,6 +1,6 @@
-import { Map, MapControls, useMap } from "@/components/ui/map"
+import { Map, MapControls, MapMarker, MarkerContent, MarkerTooltip, useMap } from "@/components/ui/map"
 import { useEffect, useState } from "react"
-
+import { RadioPlayer, useRadioStations, type RadioStation } from "./backend/radio"
 function Loader() {
   const { isLoaded } = useMap()
   const [step, setStep] = useState(0)
@@ -15,8 +15,7 @@ function Loader() {
   if (isLoaded) return null
 
   return (
-    <div className="absolute inset-0 z-10 bg-black flex flex-col items-center justify-center gap-6"
-      style={{ fontFamily: "'Courier New', monospace" }}>
+    <div className="absolute inset-0 z-10 bg-black flex flex-col items-center justify-center gap-6">
       <div className="relative">
         <div className="w-16 h-16 border border-cyan-500/30 rounded-full animate-spin" />
         <div className="absolute inset-2 border border-cyan-400/60 rounded-full animate-spin"
@@ -56,7 +55,7 @@ function HUD() {
   if (!isLoaded) return null
 
   return <>
-    <div className="absolute inset-0 pointer-events-none z-10"
+    <div className="absolute inset-0 pointer-events-none z-10 rounded-lg"
       style={{ background: "radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.7) 100%)" }} />
     <div className="absolute inset-0 pointer-events-none z-10 opacity-[0.03]"
       style={{ backgroundImage: "repeating-linear-gradient(0deg, #fff 0px, #fff 1px, transparent 1px, transparent 4px)" }} />
@@ -65,8 +64,7 @@ function HUD() {
     ].map(([pos, border], i) => (
       <div key={i} className={`absolute ${pos} w-6 h-6 ${border} border-cyan-500/50 pointer-events-none z-20`} />
     ))}
-    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 pointer-events-none"
-      style={{ fontFamily: "'Courier New', monospace" }}>
+    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
       <div className="bg-black/60 border border-cyan-900/60 backdrop-blur-sm px-4 py-1.5 rounded text-[10px] text-cyan-600 tracking-widest flex gap-4">
         <span>LAT <span className="text-cyan-400">{coords.lat}</span></span>
         <span className="text-cyan-900">|</span>
@@ -79,29 +77,49 @@ function HUD() {
 }
 
 export function App() {
-  // ✅ Service worker registered here, not inside Loader
-  useEffect(() => {
-    if (!("serviceWorker" in navigator)) return
-    navigator.serviceWorker.register("/tile-worker.js")
-      .then((reg) => console.log("[tile-cache] Registered", reg.scope))
-      .catch(console.error)
-  }, [])
+  const { mappable } = useRadioStations()
+  const [selectedStation, setSelectedStation] = useState<RadioStation | null>(null)
 
   return (
     <div className="w-screen h-screen relative bg-black">
       <Map
         center={[-74.006, 40.7128]}
-        zoom={11}
+        zoom={4}
         theme="dark"
         fadeDuration={0}
         maxTileCacheSize={500}
         renderWorldCopies={false}
-        styles={{ dark:"https://tiles.stadiamaps.com/styles/alidade_smooth_dark.json" }}
+        styles={{ dark: "https://tiles.stadiamaps.com/styles/alidade_smooth_dark.json" }}
       >
         <MapControls showZoom showCompass />
         <Loader />
         <HUD />
+
+        {mappable.map((s) => (
+          <MapMarker key={s.id} longitude={s.longitude!} latitude={s.latitude!}>
+            <MarkerContent>
+              <button
+                onClick={() => setSelectedStation(s)}
+                className="w-2 h-2 rounded-full border border-cyan-400/60 transition-all hover:scale-150"
+                style={{
+                  background: selectedStation?.id === s.id ? "#22d3ee" : "#164e63",
+                  boxShadow: selectedStation?.id === s.id ? "0 0 6px #22d3ee" : "none",
+                }}
+              />
+            </MarkerContent>
+            <MarkerTooltip>
+              <span className="text-cyan-300">
+                {s.name}
+              </span>
+            </MarkerTooltip>
+          </MapMarker>
+        ))}
       </Map>
+
+      <RadioPlayer
+        station={selectedStation}
+        onClose={() => setSelectedStation(null)}
+      />
     </div>
   )
 }
