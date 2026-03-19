@@ -1,6 +1,7 @@
 import { Map, MapControls, MapMarker, MarkerContent, MarkerTooltip, useMap } from "@/components/ui/map"
 import { useEffect, useState } from "react"
 import { RadioPlayer, useRadioStations, type RadioStation } from "./backend/radio"
+import { FlightMarkers, AircraftPanel, useFlights, type Aircraft } from "./backend/flight"
 function Loader() {
   const { isLoaded } = useMap()
   const [step, setStep] = useState(0)
@@ -77,7 +78,9 @@ function HUD() {
 }
 
 export function App() {
+  const { flights } = useFlights()
   const { mappable } = useRadioStations()
+  const [selectedFlight, setSelectedFlight] = useState<Aircraft | null>(null)
   const [selectedStation, setSelectedStation] = useState<RadioStation | null>(null)
 
   return (
@@ -94,7 +97,11 @@ export function App() {
         <MapControls showZoom showCompass />
         <Loader />
         <HUD />
-
+        <FlightMarkers
+          flights={flights}
+          selectedId={selectedFlight?.id ?? null}
+          onSelect={setSelectedFlight}
+        />
         {mappable.map((s) => (
           <MapMarker key={s.id} longitude={s.longitude!} latitude={s.latitude!}>
             <MarkerContent>
@@ -115,6 +122,9 @@ export function App() {
           </MapMarker>
         ))}
       </Map>
+      {selectedFlight && (
+        <AircraftPanel aircraft={selectedFlight} onClose={() => setSelectedFlight(null)} />
+      )}
 
       <RadioPlayer
         station={selectedStation}
